@@ -14,7 +14,7 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 
 ![Lab Topology](Diagram.png)
 
-*(High-resolution topology diagram showing ISP → OPNsense → Cisco SG300 switch → Proxmox host and VMs across VLANs 10, 20, 30, 40)*
+
 
 ## Goals
 - Demonstrate hands-on experience with modern infrastructure tools (Proxmox VE, OPNsense, Cisco switching, Active Directory).
@@ -53,6 +53,7 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
   - AnythingLLM (self-hosted AI)
 - **Security**:
   - Strict firewall rules between VLANs
+  - Double-NAT isolation: Lab network sits behind the home ISP router (first NAT) and OPNsense firewall (second NAT)
   - Isolated attacker VLAN for safe testing
 - **Monitoring & Backup**: Proxmox Backup Server (planned/in progress)
 

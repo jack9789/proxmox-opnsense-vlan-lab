@@ -1,5 +1,4 @@
 # /opt/zammad/docker-compose.yml
-version: '3.8'
 
 services:
   zammad-elasticsearch:
@@ -69,7 +68,7 @@ networks:
   vlan10:
     driver: macvlan
     driver_opts:
-      parent: vmbr10.10   # This is your VLAN 10 bridge in Proxmox
+      parent: vmbr10.10   
     ipam:
       config:
         - subnet: 192.168.10.0/24

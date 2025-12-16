@@ -50,6 +50,7 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
   - NetData (monitoring)
   - Zammad (helpdesk ticketing)
   - SearXNG (private search)
+  - AnythingLLM (self-hosted AI)
 - **Security**:
   - Strict firewall rules between VLANs
   - Isolated attacker VLAN for safe testing

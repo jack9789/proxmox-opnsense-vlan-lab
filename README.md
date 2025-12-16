@@ -43,16 +43,14 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 - **Inter-VLAN routing & firewalling** handled by OPNsense with strict rules (e.g., block Attacker → Servers by default).
 
 ## Key Features & Services
-- **Virtualization**: Proxmox VE – VMs and LXCs across VLANs
+- **Virtualization**: Proxmox VE – VMs and Containers across VLANs
 - **Directory Services**: Active Directory Domain Controller (DNS, DHCP scopes for trusted VLANs, GPOs)
 - **Docker Services** (on AlmaLinux host):
   - Portainer (management)
-  - Nextcloud (file sync)
+  - NetData (monitoring)
   - Zammad (helpdesk ticketing)
   - SearXNG (private search)
-  - Nginx Proxy Manager (reverse proxy + Let's Encrypt SSL)
 - **Security**:
-  - Suricata IDS/IPS & Zenarmor on OPNsense
   - Strict firewall rules between VLANs
   - Isolated attacker VLAN for safe testing
 - **Monitoring & Backup**: Proxmox Backup Server (planned/in progress)
@@ -64,18 +62,16 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 - Windows Server AD DS, DNS, DHCP, multi-subnet management
 - Linux system administration (AlmaLinux, Ubuntu domain join via SSSD)
 - Docker container deployment and management
-- Reverse proxy with TLS termination
 - Network troubleshooting across segmented environment
 
 ## Documentation
 - Sanitized configuration exports (OPNsense config.xml, Cisco running-config, Proxmox network interfaces)
-- Topology diagram (draw.io source included)
-- Screenshots of key setups (AD joins, Suricata alerts, etc.)
+- Topology diagram 
+
 
 ## Future Plans
 - Add Proxmox Backup Server in VLAN 10
 - Implement Guacamole for browser-based remote desktop (IT support simulation)
-- Deploy GLPI ticketing alongside Zammad
 - More advanced GPOs and monitoring (Grafana/Prometheus)
 
 ---
@@ -84,5 +80,4 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 Feel free to fork, star, or reach out for questions!
 
 Sheng-You Chen  
-Adelaide, South Australia  
 jack9789@gmail.com

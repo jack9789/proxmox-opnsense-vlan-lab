@@ -28,6 +28,8 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 - **Firewall/Router**: OPNsense on dedicated AOOSTAR N150 mini PC (2 NICs)
 - **Switch**: Cisco SG300-28 (managed, Layer 2+ with 802.1Q support)
 - **ISP Router**: Home modem/router (double-NAT for full lab isolation)
+- **Proxmox Backup Server**: Acer Aspire 3 (single NIC)
+- **Guest WIFI**: GL-BE3600 wireless router
 
 ## Network Design
 
@@ -37,7 +39,7 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 | 20   | Servers           | 192.168.20.0/24    | Windows Server 2022 AD DC (192.168.20.10)<br>AlmaLinux Docker host (192.168.20.20) – Portainer, Nextcloud, Zammad, SearXNG, etc. |
 | 30   | Trusted Clients   | 192.168.30.0/24    | Windows 11 clients (DHCP from OPNsense)<br>Ubuntu desktop client (DHCP) |
 | 40   | Attacker / DMZ    | 192.168.40.0/24    | Kali Linux (192.168.40.10 – static)                    |
-| 50   | Guest WIFI        | 192.168.50.0/24    | GL-BE3600 wireless router                              |
+| 50   | Guest WIFI        | 192.168.50.0/24    | GL-BE3600 wireless router (Planning)                   |
 
 - **Trunk ports** on Cisco SG300 carry tagged VLANs 10, 20, 30, 40 to both OPNsense and Proxmox.
 - **Double-NAT isolation**: Lab sits behind home ISP router – zero impact on daily devices.
@@ -52,12 +54,12 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
   - Zammad (helpdesk ticketing)
   - SearXNG (private search)
   - AnythingLLM (self-hosted AI)
-  - NNginx Proxy Manager(Reverse Proxy)
+  - Nginx Proxy Manager(Reverse Proxy)
 - **Security**:
   - Strict firewall rules between VLANs
   - Double-NAT isolation: Lab network sits behind the home ISP router (first NAT) and OPNsense firewall (second NAT)
   - Isolated attacker VLAN for safe testing
-- **Monitoring & Backup**: Proxmox Backup Server 
+- **Monitoring & Backup**: Proxmox Backup Server on vms 
 
 ## Skills Demonstrated
 - Cisco IOS VLAN/trunk configuration

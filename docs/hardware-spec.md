@@ -53,11 +53,10 @@ This document details the physical hardware components used in the Proxmox OPNse
 - Management IP: 192.168.10.5/24 (VLAN 10)
 
 **Current VM Load:**
-- Running VMs: [X]
-- Total vCPUs allocated: [XX]
-- Total RAM allocated: [XX]GB
-- Average CPU utilization: [XX]%
-- Average RAM utilization: [XX]%
+- Running VMs: [7]
+- Total vCPUs allocated: [14]
+- Total RAM allocated: [42]GB
+
 
 ---
 
@@ -127,11 +126,11 @@ VLAN 40 (Attacker): Untagged on ports 11-15, Tagged on ports 2,3
 
 | Component | Specification | Notes |
 |-----------|--------------|-------|
-| **ISP** | [Your ISP] | [Speed: XX Mbps down / XX Mbps up] |
-| **Model** | [Router model] | ISP-provided or personal |
+| **ISP** | [TPG] | [Speed: 100 Mbps down / 18 Mbps up] |
+| **Model** | [sagemcom fast 5866tl] | ISP-provided |
 | **WAN IP** | Public (dynamic) | From ISP |
-| **LAN Subnet** | [e.g., 192.168.1.0/24] | Home network |
-| **Lab Connection** | Port [X] → OPNsense WAN | Isolated from home devices |
+| **LAN Subnet** | [192.168.1.0/24] | Home network |
+
 
 **Isolation Strategy:**
 - Lab network (192.168.x.x) sits behind ISP router
@@ -140,19 +139,6 @@ VLAN 40 (Attacker): Untagged on ports 11-15, Tagged on ports 2,3
 - Lab VMs have internet access through OPNsense → ISP router
 
 ---
-
-## 5. Client Devices (Physical - Optional)
-
-### Testing/Management Devices
-
-| Device | Purpose | Connection |
-|--------|---------|------------|
-| Laptop | Management/testing | WiFi or VLAN 10/30 |
-| Desktop | [if applicable] | VLAN 30 |
-| Smartphone | Remote management | VPN to lab (future) |
-
----
-
 
 
 ## 5. Lessons Learned & Recommendations
@@ -165,9 +151,28 @@ VLAN 40 (Attacker): Untagged on ports 11-15, Tagged on ports 2,3
 
 ### Challenges Overcome
 
-- **Initial VLAN tagging issues:** Resolved by enabling VLAN-aware bridge in Proxmox
-- **OPNsense DHCP relay:** Required proper firewall rules for cross-VLAN DHCP
-- **Double-NAT complexity:** Requires port forwarding on both routers for external access
+1. VLAN Tagging on Single NIC Proxmox Host
+**Problem:** Initial confusion on how to trunk multiple VLANs over a single physical interface.  
+**Solution:** Enabled "VLAN aware" checkbox on `vmbr0` bridge in Proxmox network settings. Then configured VLAN tags directly on VM network interfaces (e.g., `vmbr0` with VLAN tag 20 for server VMs). 
+2. OPNsense Firewall Rules - Internet Access Without Inter-VLAN Communication
+**Problem:** VMs needed internet access but should NOT be able to communicate across VLANs freely.  
+**Solution:** Implemented hierarchical firewall rules on OPNsense:
+- **Allow rules first:** Each VLAN → !interal_networks(VLAN 10 - VLAN 40) (permit HTTP/HTTPS)
+- **Explicit allow rules last:** Specific inter-VLAN where needed (e.g., VLAN 30 → VLAN 20 essential ports for AD services)
+- **Default deny:** Implicit deny all at bottom of rule stack  
+3. DNS Resolution Across VLANs
+**Problem:** VMs in VLAN 30 couldn't resolve internal domain names served by AD DC (192.168.20.10).  
+**Solution:** 
+- Configured OPNsense DHCP to push DNS server 192.168.20.10 to VLAN 30 clients
+- Added firewall rule allowing UDP/TCP 53 from all VLANs → 192.168.20.10
+- Configured AD DNS server to forward external queries to 8.8.8.8  
+4. Windows 11 Domain Join Over VLAN
+**Problem:** Windows 11 VMs in VLAN 30 couldn't find domain controller in VLAN 20.  
+**Solution:** 
+- Verified DNS settings pointed to AD DC (192.168.20.10)
+- Confirmed firewall rules allowed necessary AD ports (TCP/UDP 88, 135, 389, 445, 464, etc.)
+- Used `nslookup` and to verify connectivity before domain join
+- Successfully joined after confirming all requirements   
 
 |
 

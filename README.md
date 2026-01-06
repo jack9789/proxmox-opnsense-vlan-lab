@@ -12,7 +12,7 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 
 ## Overview Diagram
 
-![Lab Topology](Diagram.png)
+![Lab Topology](Topology_diagram.png)
 
 
 

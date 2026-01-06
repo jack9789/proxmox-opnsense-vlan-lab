@@ -39,7 +39,7 @@ This document details the physical hardware components used in the Proxmox OPNse
 | **RAM** | [64]GB DDR5 |
 | **Storage** | [1]TB NVMe SSD | Model: [CRUCIAL P310] |
 | **Network** | 1x 2.5GbE RJ45 | Single NIC with VLAN tagging |
-| **Operating System** | Proxmox VE 9.1 |
+| **Operating System** | Proxmox VE 9.1.2 |
 
 
 **BIOS Settings:**
@@ -103,7 +103,7 @@ This document details the physical hardware components used in the Proxmox OPNse
 | **Ports** | 24x 1GbE + 2x combo GbE/SFP | RJ45 ports |
 | **Management** | Web UI, CLI (SSH) | Static IP: 192.168.10.254 (VLAN 10) |
 | **Firmware** | [version] |
-| **VLAN Support** | 802.1Q, 4096 VLANs | Using VLANs 10, 20, 30, 40 |
+| **VLAN Support** | 802.1Q, 4096 VLANs | Using VLANs 10, 20, 30, 40, 50 |
 
 
 
@@ -120,7 +120,7 @@ VLAN 40 (Attacker): Untagged on ports 11-15, Tagged on ports 2,3
 
 ## 4. ISP Router/Modem
 
-### [Your ISP Router Model]
+### [Sagemcom FAST 5866T]
 
 **Purpose:** Primary internet gateway (creates double-NAT isolation for lab)
 
@@ -139,9 +139,36 @@ VLAN 40 (Attacker): Untagged on ports 11-15, Tagged on ports 2,3
 - Lab VMs have internet access through OPNsense → ISP router
 
 ---
+## 5. Proxmox Backup Server
+
+### Acer Aspire 3
+
+**Purpose:** Backup VMs
+
+| Component | Specification | Notes |
+|-----------|--------------|-------|
+| **Model** | Acer Aspire 3 | Compact laptop |
+| **CPU** | Intel Core Ultra 5 125H| [4] cores, [8] threads |
+| **RAM** | [16]GB LPDDR5 |
+| **Storage** | [1]TB NVMe SSD | Model: [WD PC SN735] |
+| **Network** | 1x 1GbE RJ45 | Single NIC |
+| **Operating System** | Proxmox Backup Server 4.1 |
+---
+## 6. Guest WIFI
+
+### GL.iNet Gl-BE3600
+
+**Purpose:** Provide Guest WIFI
+
+| Component | Specification | Notes |
+|-----------|--------------|-------|
+| **Model** | GL-BE3600 | compact wireless router|
 
 
-## 5. Lessons Learned & Recommendations
+
+
+---
+## 7. Lessons Learned & Recommendations
 
 ### What Works Well
 

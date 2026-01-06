@@ -37,6 +37,7 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 | 20   | Servers           | 192.168.20.0/24    | Windows Server 2022 AD DC (192.168.20.10)<br>AlmaLinux Docker host (192.168.20.20) – Portainer, Nextcloud, Zammad, SearXNG, etc. |
 | 30   | Trusted Clients   | 192.168.30.0/24    | Windows 11 clients (DHCP from OPNsense)<br>Ubuntu desktop client (DHCP) |
 | 40   | Attacker / DMZ    | 192.168.40.0/24    | Kali Linux (192.168.40.10 – static)                    |
+| 50   | Guest WIFI        | 192.168.50.0/24    | GL-BE3600 wireless router                              |
 
 - **Trunk ports** on Cisco SG300 carry tagged VLANs 10, 20, 30, 40 to both OPNsense and Proxmox.
 - **Double-NAT isolation**: Lab sits behind home ISP router – zero impact on daily devices.
@@ -51,11 +52,12 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
   - Zammad (helpdesk ticketing)
   - SearXNG (private search)
   - AnythingLLM (self-hosted AI)
+  - NNginx Proxy Manager(Reverse Proxy)
 - **Security**:
   - Strict firewall rules between VLANs
   - Double-NAT isolation: Lab network sits behind the home ISP router (first NAT) and OPNsense firewall (second NAT)
   - Isolated attacker VLAN for safe testing
-- **Monitoring & Backup**: Proxmox Backup Server (planned/in progress)
+- **Monitoring & Backup**: Proxmox Backup Server 
 
 ## Skills Demonstrated
 - Cisco IOS VLAN/trunk configuration
@@ -72,14 +74,14 @@ A isolated, VLAN-segmented enterprise-style network lab built with production-li
 
 
 ## Future Plans
-- Add Proxmox Backup Server in VLAN 10
+- Add VLAN 50 for guest wifi
 - Implement Guacamole for browser-based remote desktop (IT support simulation)
-- More advanced GPOs and monitoring (Grafana/Prometheus)
+- More advanced GPOs and monitoring 
 
 ---
 
 **This project is actively maintained and used for continuous learning.**  
-Feel free to fork, star, or reach out for questions!
+
 
 Sheng-You Chen  
 jack9789@gmail.com

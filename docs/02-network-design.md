@@ -18,11 +18,6 @@ This document details the network architecture, VLAN segmentation, routing, and 
 4. [IP Addressing Scheme](#ip-addressing-scheme)
 5. [Routing & Gateway Configuration](#routing--gateway-configuration)
 6. [Firewall Policy Design](#firewall-policy-design)
-7. [DNS & DHCP Services](#dns--dhcp-services)
-8. [Security Zones & Trust Boundaries](#security-zones--trust-boundaries)
-9. [Traffic Flow Examples](#traffic-flow-examples)
-10. [High Availability Considerations](#high-availability-considerations)
-11. [Future Expansion Plan](#future-expansion-plan)
 
 ---
 

@@ -298,29 +298,215 @@ Step 2: OPNsense WAN NAT by ISP Router
 ---
 
 
-## Conclusion
+## Firewall Policy Design
 
-This network design provides a realistic simulation of enterprise network architecture with proper segmentation, security controls, and centralized services. The modular VLAN approach allows for easy expansion and testing of new scenarios while maintaining security isolation.
+### Security Philosophy
 
-**Key Achievements:**
-- ✅ Four isolated VLANs with controlled inter-VLAN routing
-- ✅ Enterprise-style Active Directory domain
-- ✅ Secure firewall policy with default-deny approach
-- ✅ Production-ready services (Docker containers, AD, DNS, DHCP)
-- ✅ Isolated penetration testing environment
-- ✅ Comprehensive documentation for portfolio
+**Defense-in-Depth Strategy:**
+1. **Default Deny Approach** - All traffic blocked unless explicitly allowed
+2. **Least Privilege Principle** - Grant minimum necessary access
+3. **Network Segmentation** - VLANs isolated with controlled inter-VLAN routing
+4. **Logging & Monitoring** - Track allowed and denied traffic for security analysis
+5. **Port-Specific Rules** - Allow only required protocols/ports, not blanket "any"
 
-**This design demonstrates:**
-- Network segmentation best practices
-- Firewall policy development and management
-- Multi-subnet Active Directory implementation  
-- Enterprise service integration (DNS, DHCP, AD)
-- Security-first thinking (defense in depth, least privilege)
-- Practical troubleshooting and problem-solving skills
+### Firewall Architecture
+
+**OPNsense acts as the central firewall and router:**
+- All inter-VLAN traffic passes through OPNsense
+- Stateful packet inspection with connection tracking
+- Rules processed top-to-bottom (first match wins with "quick" flag)
+- Aliases used for maintainability and clarity
+
+### Firewall Aliases (Reusable Objects)
+
+**Port Aliases:**
+
+| Alias Name | Ports | Purpose |
+|------------|-------|---------|
+| `Web_Ports` | 80, 443 | Standard HTTP/HTTPS traffic |
+| `Docker_APPs` | 80, 81, 3001, 8001, 8080, 9000, 19999 | Docker containerized services |
+| `AD_Ports` | 53, 88, 135, 389, 445, 636, 464, 3268, 3269, 49152-65535 | Active Directory all required ports |
+
+**Network Aliases:**
+
+| Alias Name | Networks | Purpose |
+|------------|----------|---------|
+| `Internal_networks` | 192.168.10.0/24, 192.168.20.0/24, 192.168.30.0/24, 192.168.40.0/24 | All lab VLAN subnets |
+
+**Alias Usage Benefits:**
+- Single point of change (modify alias, not individual rules)
+- Improved readability (semantic names vs. port numbers)
+- Reduced errors (consistency across rules)
+- Easier auditing and documentation
 
 ---
 
+### VLAN 10 (Management) - OPT1 Firewall Rules
 
+**Security Level:** Trusted (Full Administrative Access)
+
+| # | Action | Protocol | Source | Destination | Port/Service | Description |
+|---|--------|----------|--------|-------------|--------------|-------------|
+| 1 | **Pass** | TCP | VLAN 10 net | OPNsense (self) | 22 | SSH to OPNsense for CLI management |
+| 2 | **Pass** | TCP | VLAN 10 net | OPNsense (self) | 443 | HTTPS to OPNsense Web UI |
+| 3 | **Pass** | TCP/UDP | Any | OPNsense (self) | 123 | NTP time synchronization |
+| 4 | **Pass** | TCP/UDP | VLAN 10 net | OPNsense (self) | 53 | DNS queries to OPNsense |
+| 5 | **Pass** | TCP/UDP | VLAN 10 net | 192.168.20.20 | Docker_APPs | Access Docker services (Portainer, Nextcloud, etc.) |
+| 6 | **Pass** | TCP | VLAN 10 net | !Internal_networks | Web_Ports | Internet access (HTTP/HTTPS) |
+| 7 | **Pass** | ICMP | Any | Any | - | Ping for diagnostics |
+| 8 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
+
+**Rationale:**
+- Management VLAN has privileged access to OPNsense itself (SSH, Web UI)
+- Can access all services for administrative purposes
+- Can reach internet for updates and management
+- ICMP allowed for network diagnostics (ping, traceroute)
+- Full access to Docker applications for monitoring/management
+
+**Key Features:**
+- Direct access to OPNsense management interfaces
+- Access to servers for administration
+- Outbound internet access unrestricted
+- No restrictions on inter-VLAN access (trusted admin network)
+
+---
+
+### VLAN 20 (Servers) - OPT2 Firewall Rules
+
+**Security Level:** Semi-Trusted (Production Services)
+
+| # | Action | Protocol | Source | Destination | Port/Service | Description |
+|---|--------|----------|--------|-------------|--------------|-------------|
+| 1 | **Pass** | TCP | VLAN 20 net | OPNsense (self) | 443 | HTTPS to OPNsense (monitoring, management) |
+| 2 | **Pass** | TCP/UDP | VLAN 20 net | OPNsense (self) | 53 | DNS queries for external resolution |
+| 3 | **Pass** | TCP | VLAN 20 net | !Internal_networks | Web_Ports | Internet access for updates (HTTP/HTTPS) |
+| 4 | **Pass** | ICMP | Any | Internal_networks | - | Ping to other VLANs for monitoring |
+| 5 | **Deny** | Any | VLAN 20 net | VLAN 30 net | Any | Block servers from initiating to clients |
+| 6 | **Deny** | Any | VLAN 20 net | VLAN 40 net | Any | Block servers from reaching attacker VLAN |
+| 7 | **Deny** | Any | VLAN 20 net | VLAN 10 net | Any | Block servers from management VLAN |
+| 8 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
+
+**Rationale:**
+- Servers can download updates from internet
+- Servers cannot initiate connections to client or management VLANs (security)
+- ICMP allowed for monitoring and diagnostics
+- DNS resolution via OPNsense for external queries
+- Limited access to OPNsense (HTTPS only, no SSH from servers)
+
+**Security Principle:**
+- Servers are "semi-trusted" - they provide services but should not initiate connections to clients
+- Prevents lateral movement in case of server compromise
+- Outbound internet access needed for updates and external services
+- ICMP monitoring allowed for operational visibility
+
+---
+
+### VLAN 30 (Clients) - OPT3 Firewall Rules
+
+**Security Level:** Trusted (User Workstations)
+
+| # | Action | Protocol | Source | Destination | Port/Service | Description |
+|---|--------|----------|--------|-------------|--------------|-------------|
+| 1 | **Pass** | TCP/UDP | VLAN 30 net | 192.168.20.10 | AD_Ports | Active Directory authentication and services |
+| 2 | **Pass** | TCP | VLAN 30 net | 192.168.20.20 | Docker_APPs | Access to Docker web services (Nextcloud, etc.) |
+| 3 | **Pass** | TCP/UDP | VLAN 30 net | OPNsense (self) | 53 | DNS queries (forwarded to AD DC) |
+| 4 | **Pass** | TCP | VLAN 30 net | !Internal_networks | Web_Ports | Internet access (HTTP/HTTPS) |
+| 5 | **Pass** | ICMP | Any | Internal_networks | - | Ping for diagnostics |
+| 6 | **Deny** | Any | VLAN 30 net | VLAN 10 net | Any | Block clients from management VLAN |
+| 7 | **Deny** | Any | VLAN 30 net | VLAN 40 net | Any | Block clients from attacker VLAN |
+| 8 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
+
+**Rationale:**
+- Clients need full access to Active Directory (authentication, GPOs, file shares)
+- Clients can access Docker applications (Nextcloud, Portainer, etc.)
+- Internet access for productivity (web browsing)
+- DNS forwarded through OPNsense to AD DC
+- Cannot access management VLAN (separation of duties)
+- Cannot reach attacker VLAN (security isolation)
+
+**Active Directory Ports Breakdown:**
+- **53** (DNS): Name resolution
+- **88** (Kerberos): Authentication
+- **135** (RPC): Remote procedure calls
+- **389** (LDAP): Directory queries
+- **445** (SMB): File sharing, SYSVOL
+- **464** (Kerberos Pwd): Password changes
+- **636** (LDAPS): Secure LDAP
+- **3268/3269** (Global Catalog): Forest-wide directory queries
+- **49152-65535** (Dynamic RPC): Various AD services
+
+**Docker Applications Accessible:**
+- Port 80: HTTP services
+- Port 81: Custom web app
+- Port 3001: AnythingLLM
+- Port 8001: Custom service
+- Port 8080: Nextcloud
+- Port 9000: Portainer
+- Port 19999: NetData monitoring
+
+---
+
+### VLAN 40 (Attacker/DMZ) - OPT4 Firewall Rules
+
+**Security Level:** Untrusted (Isolated Testing Environment)
+
+| # | Action | Protocol | Source | Destination | Port/Service | Description |
+|---|--------|----------|--------|-------------|--------------|-------------|
+| 1 | **Pass** | TCP/UDP | Any | OPNsense (self) | 123 | NTP time synchronization |
+| 2 | **Pass** | TCP/UDP | VLAN 40 net | OPNsense (self) | 53 | DNS queries for internet resolution |
+| 3 | **Pass** | TCP | VLAN 40 net | !Internal_networks | Web_Ports | Internet-only access (tools, updates) |
+| 4 | **Pass** | ICMP | Any | Internal_networks | - | Ping to other VLANs (diagnostics) |
+| 5 | **Deny** | Any | VLAN 40 net | VLAN 10 net | Any | Block attacker from management |
+| 6 | **Deny** | Any | VLAN 40 net | VLAN 20 net | Any | Block attacker from servers (by default) |
+| 7 | **Deny** | Any | VLAN 40 net | VLAN 30 net | Any | Block attacker from clients |
+| 8 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
+
+**Rationale:**
+- Complete isolation from all other VLANs by default
+- Internet access only (for downloading penetration testing tools)
+- ICMP allowed for network reconnaissance (intentional for testing)
+- No access to management, servers, or clients without explicit temporary rules
+- DNS queries allowed (attacker needs name resolution for internet)
+
+**Security Design:**
+- This VLAN is intentionally isolated for safe security testing
+- Kali Linux and vulnerable VMs reside here
+- Internet access allows downloading exploits, tools, updates
+- Temporary rules created on-demand for specific testing scenarios
+- All testing activity logged for analysis
+
+**Temporary Testing Rules (Created as Needed):**
+When conducting authorized penetration testing:
+1. Admin logs into OPNsense
+2. Creates temporary "Pass" rule: VLAN 40 → specific target IP/port
+3. Performs testing (logged)
+4. Disables rule immediately after completion
+5. Reviews logs for detected activity
+
+**Example Temporary Rule:**
+```
+Action: Pass
+Source: 192.168.40.10 (Kali Linux)
+Destination: 192.168.30.50 (Test Windows VM)
+Protocol: Any
+Duration: Enabled for testing session only
+Purpose: Authorized vulnerability assessment
+```
+
+---
+
+### Rule Processing Order & Logic
+
+**OPNsense Rule Evaluation:**
+1. **Top-to-bottom processing** - First matching rule wins (if "quick" flag set)
+2. **Interface-specific** - Rules applied on ingress interface
+3. **Stateful inspection** - Return traffic automatically allowed for established connections
+4. **Implicit deny** - If no rule matches, traffic is blocked and logged
+
+**"Quick" Flag Usage:**
+- All rules use "quick" flag (first match wins, stop processing)
+- Allows specific exceptions before general rules
+- More efficient than evaluating entire ruleset
 
 **Author:** Sheng-You Chen  
 **Contact:** jack9789@gmail.com  

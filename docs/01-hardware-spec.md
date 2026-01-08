@@ -5,7 +5,6 @@
 This document details the physical hardware components used in the Proxmox OPNsense VLAN Homelab. The setup is designed for cost-effectiveness while maintaining enterprise-like functionality and performance.
 
 **Last Updated:** January 2026  
-**Total Investment:** ~$[estimate] AUD  
 
 
 ---
@@ -77,17 +76,13 @@ This document details the physical hardware components used in the Proxmox OPNse
 | **Operating System** | OPNsense 24.x | Open-source firewall |
 
 **OPNsense Configuration:**
-- WAN Interface: `igc0` - DHCP from ISP router
-- LAN Interface: `igc1` - VLAN trunk
+- WAN Interface: `igc1` - DHCP from ISP router
+- LAN Interface: `igc0` - VLAN trunk
   - VLAN 10: 192.168.10.1/24 (Management)
   - VLAN 20: 192.168.20.1/24 (Servers)
   - VLAN 30: 192.168.30.1/24 (Trusted Clients)
   - VLAN 40: 192.168.40.1/24 (Attacker/DMZ)
 
-**Performance Notes:**
-- Throughput: ~2.5Gbps with basic firewall rules
-- Latency: <1ms inter-VLAN routing
-- CPU usage: <20% under normal load
 
 ---
 
@@ -110,10 +105,10 @@ This document details the physical hardware components used in the Proxmox OPNse
 
 **VLAN Configuration:**
 ```
-VLAN 10 (Management): Untagged on port 24, Tagged on ports 2,3
-VLAN 20 (Servers): Tagged on ports 2,3
-VLAN 30 (Clients): Untagged on ports 4-10, Tagged on ports 2,3
-VLAN 40 (Attacker): Untagged on ports 11-15, Tagged on ports 2,3
+VLAN 10 (Management): Untagged on port 1, Tagged on ports 2,8
+VLAN 20 (Servers): Tagged on ports 2,8
+VLAN 30 (Clients):  Tagged on ports 2,8
+VLAN 40 (Attacker): Tagged on ports 2,8
 ```
 
 ---

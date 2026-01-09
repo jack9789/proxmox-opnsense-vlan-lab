@@ -378,13 +378,10 @@ Step 2: OPNsense WAN NAT by ISP Router
 | # | Action | Protocol | Source | Destination | Port/Service | Description |
 |---|--------|----------|--------|-------------|--------------|-------------|
 | 1 | **Pass** | TCP | VLAN 20 net | OPNsense (self) | 443 | HTTPS to OPNsense (monitoring, management) |
-| 2 | **Pass** | TCP/UDP | VLAN 20 net | OPNsense (self) | 53 | DNS queries for external resolution |
+| 2 | **Pass** | TCP/UDP | Any | OPNsense (self) | 123 | NTP time synchronization |
 | 3 | **Pass** | TCP | VLAN 20 net | !Internal_networks | Web_Ports | Internet access for updates (HTTP/HTTPS) |
 | 4 | **Pass** | ICMP | Any | Internal_networks | - | Ping to other VLANs for monitoring |
-| 5 | **Deny** | Any | VLAN 20 net | VLAN 30 net | Any | Block servers from initiating to clients |
-| 6 | **Deny** | Any | VLAN 20 net | VLAN 40 net | Any | Block servers from reaching attacker VLAN |
-| 7 | **Deny** | Any | VLAN 20 net | VLAN 10 net | Any | Block servers from management VLAN |
-| 8 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
+| 5 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
 
 **Rationale:**
 - Servers can download updates from internet
@@ -409,12 +406,10 @@ Step 2: OPNsense WAN NAT by ISP Router
 |---|--------|----------|--------|-------------|--------------|-------------|
 | 1 | **Pass** | TCP/UDP | VLAN 30 net | 192.168.20.10 | AD_Ports | Active Directory authentication and services |
 | 2 | **Pass** | TCP | VLAN 30 net | 192.168.20.20 | Docker_APPs | Access to Docker web services (Nextcloud, etc.) |
-| 3 | **Pass** | TCP/UDP | VLAN 30 net | OPNsense (self) | 53 | DNS queries (forwarded to AD DC) |
+| 3 | **Pass** | TCP/UDP | Any | OPNsense (self) | 123 | NTP time synchronization |
 | 4 | **Pass** | TCP | VLAN 30 net | !Internal_networks | Web_Ports | Internet access (HTTP/HTTPS) |
 | 5 | **Pass** | ICMP | Any | Internal_networks | - | Ping for diagnostics |
-| 6 | **Deny** | Any | VLAN 30 net | VLAN 10 net | Any | Block clients from management VLAN |
-| 7 | **Deny** | Any | VLAN 30 net | VLAN 40 net | Any | Block clients from attacker VLAN |
-| 8 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
+| 6 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
 
 **Rationale:**
 - Clients need full access to Active Directory (authentication, GPOs, file shares)
@@ -456,10 +451,7 @@ Step 2: OPNsense WAN NAT by ISP Router
 | 2 | **Pass** | TCP/UDP | VLAN 40 net | OPNsense (self) | 53 | DNS queries for internet resolution |
 | 3 | **Pass** | TCP | VLAN 40 net | !Internal_networks | Web_Ports | Internet-only access (tools, updates) |
 | 4 | **Pass** | ICMP | Any | Internal_networks | - | Ping to other VLANs (diagnostics) |
-| 5 | **Deny** | Any | VLAN 40 net | VLAN 10 net | Any | Block attacker from management |
-| 6 | **Deny** | Any | VLAN 40 net | VLAN 20 net | Any | Block attacker from servers (by default) |
-| 7 | **Deny** | Any | VLAN 40 net | VLAN 30 net | Any | Block attacker from clients |
-| 8 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
+| 5 | **Deny** | Any | Any | Any | Any | Implicit deny all (logged) |
 
 **Rationale:**
 - Complete isolation from all other VLANs by default
